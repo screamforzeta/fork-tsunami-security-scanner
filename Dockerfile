@@ -1,5 +1,8 @@
 FROM adoptopenjdk/openjdk13:debianslim
 
+RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list \
+    && sed -i s/security.debian.org/archive.debian.org/g /etc/apt/sources.list
+
 # Install dependencies
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates \
@@ -10,7 +13,11 @@ RUN apt-get update \
 WORKDIR /usr/tsunami/repos
 
 # Clone the plugins repo
-RUN git clone --depth 1 "https://github.com/google/tsunami-security-scanner-plugins"
+#RUN git clone --depth 1 "https://github.com/google/tsunami-security-scanner-plugins"
+RUN git clone "https://github.com/google/tsunami-security-scanner-plugins"
+
+WORKDIR /usr/tsunami/repos/tsunami-security-scanner-plugins/
+RUN git checkout 9c9a7fd716e2dca08c3d1a838a7430759eec75a7
 
 # Build plugins
 WORKDIR /usr/tsunami/repos/tsunami-security-scanner-plugins/google
@@ -29,6 +36,9 @@ RUN ./gradlew shadowJar \
 
 # Stage 2: Release
 FROM adoptopenjdk/openjdk13:debianslim-jre
+
+RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list \
+    && sed -i s/security.debian.org/archive.debian.org/g /etc/apt/sources.list
 
 # Install dependencies
 RUN apt-get update \
